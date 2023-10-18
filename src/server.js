@@ -1,42 +1,31 @@
 import http from 'node:http'
+import { randomUUID } from 'node:crypto'
+import { json } from './middlewares/json.js'
 
 const tasks = []
 
 const server = http.createServer(async (req, res) => {
   const { method, url } = req
 
-  const buffers = []
-
-  for await (const chunk of req) {
-    buffers.push(chunk)
-  }
-
-  try {
-    req.body = JSON.parse(Buffer.concat(buffers).toString())
-  } catch {
-    req.body = null
-  }
+  await json(req, res)
 
   if (method === 'GET' && url === '/') {
     res.end('Home da aplicacao')
   }
 
   if (method === 'GET' && url === '/tasks') {
-    return res
-      .setHeader('content-type', 'application/json')
-      .end(JSON.stringify(tasks))
+    return res.end(JSON.stringify(tasks))
   }
 
   if (method === 'POST' && url === '/tasks') {
-    const { id, title, description } = req.body
-    const { completedAt, createdAt, updatedAt } = req.body
+    const { title, description } = req.body
     tasks.push({
-      id,
+      id: randomUUID(),
       title,
       description,
-      completedAt,
-      createdAt,
-      updatedAt
+      completedAt: null,
+      createdAt: new Date(),
+      updatedAt: null
     })
 
     return res.writeHead(201).end()
