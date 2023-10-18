@@ -2,8 +2,20 @@ import http from 'node:http'
 
 const tasks = []
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const { method, url } = req
+
+  const buffers = []
+
+  for await (const chunk of req) {
+    buffers.push(chunk)
+  }
+
+  try {
+    req.body = JSON.parse(Buffer.concat(buffers).toString())
+  } catch {
+    req.body = null
+  }
 
   if (method === 'GET' && url === '/') {
     res.end('Home da aplicacao')
@@ -16,17 +28,16 @@ const server = http.createServer((req, res) => {
   }
 
   if (method === 'POST' && url === '/tasks') {
+    const { id, title, description } = req.body
+    const { completedAt, createdAt, updatedAt } = req.body
     tasks.push({
-      id: 1,
-      title: 'Task',
-      description: 'Tarefa de teste',
-      completedAt: new Date().toLocaleString(),
-      createdAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
+      id,
+      title,
+      description,
+      completedAt,
+      createdAt,
+      updatedAt
     })
-
-    console.log('entrou no POST')
-    console.log(tasks)
 
     return res.writeHead(201).end()
   }
@@ -35,5 +46,4 @@ const server = http.createServer((req, res) => {
 const port = 3333
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`)
-  console.log(tasks)
 })
