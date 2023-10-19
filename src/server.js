@@ -1,44 +1,27 @@
-import { randomUUID } from 'node:crypto'
 import http from 'node:http'
-import { Database } from './database.js'
 import { json } from './middlewares/json.js'
-
-const tasks = []
-const database = new Database()
+import { routes } from './routes.js'
 
 const server = http.createServer(async (req, res) => {
   const { method, url } = req
 
   await json(req, res)
 
-  if (method === 'GET' && url === '/') {
-    res.end('Home da aplicacao')
-  }
+  const route = routes.find(route => {
+    return route.method === method && route.path.test(url)
+  })
 
-  if (method === 'GET' && url === '/tasks') {
-    const tasks = database.select('tasks')
+  if (route) {
+    const routeParams = req.url.match(route.path)
 
-    return res.end(JSON.stringify(tasks))
-  }
+    req.params = { ...routeParams.groups }
 
-  if (method === 'POST' && url === '/tasks') {
-    const { title, description } = req.body
-    const task = {
-      id: randomUUID(),
-      title,
-      description,
-      completedAt: null,
-      createdAt: new Date(),
-      updatedAt: null
-    }
-
-    database.insert('tasks', task)
-
-    return res.writeHead(201).end('task criada')
+    return route.handler(req, res)
+  } else {
+    return res.end('Rota invalida')
   }
 })
 
-const port = 3333
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`)
+server.listen(3333, () => {
+  console.log(`Server is running on http://localhost:3333`)
 })
