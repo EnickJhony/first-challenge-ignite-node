@@ -11,11 +11,11 @@ export class Database {
         this.#database = JSON.parse(data)
       })
       .catch(() => {
-        this.persist()
+        this.#persist()
       })
   }
 
-  persist() {
+  #persist() {
     fs.writeFile(databasePath, JSON.stringify(this.#database))
   }
 
@@ -31,7 +31,7 @@ export class Database {
       this.#database[table] = [data]
     }
 
-    this.persist()
+    this.#persist()
 
     return data
   }
@@ -41,7 +41,43 @@ export class Database {
 
     if (rowIndex > -1) {
       this.#database[table].splice(rowIndex, 1)
-      this.persist()
+      this.#persist()
+    }
+  }
+
+  update(table, id, data) {
+    const { title, description, updatedAt } = data
+    const indexRow = this.#database[table].findIndex(row => row.id === id)
+
+    const dataDB = this.#database[table][indexRow]
+
+    if (indexRow > -1) {
+      if (title === undefined) {
+        console.log('primeiro if')
+        this.#database[table][indexRow] = {
+          ...dataDB,
+          description,
+          updatedAt
+        }
+        this.#persist()
+      } else if (description === undefined) {
+        console.log('segundo if')
+        this.#database[table][indexRow] = {
+          ...dataDB,
+          title,
+          updatedAt
+        }
+        this.#persist()
+      } else {
+        console.log('terceiro if')
+        this.#database[table][indexRow] = {
+          ...dataDB,
+          title,
+          description,
+          updatedAt
+        }
+        this.#persist()
+      }
     }
   }
 }
