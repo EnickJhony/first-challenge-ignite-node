@@ -51,17 +51,18 @@ export class Database {
 
     const dataDB = this.#database[table][indexRow]
 
+    const isTitleNull = title === undefined
+    const isDescriptionNull = description === undefined
+
     if (indexRow > -1) {
-      if (title === undefined) {
-        console.log('primeiro if')
+      if (isTitleNull) {
         this.#database[table][indexRow] = {
           ...dataDB,
           description,
           updatedAt
         }
         this.#persist()
-      } else if (description === undefined) {
-        console.log('segundo if')
+      } else if (isDescriptionNull) {
         this.#database[table][indexRow] = {
           ...dataDB,
           title,
@@ -69,7 +70,6 @@ export class Database {
         }
         this.#persist()
       } else {
-        console.log('terceiro if')
         this.#database[table][indexRow] = {
           ...dataDB,
           title,
@@ -78,6 +78,22 @@ export class Database {
         }
         this.#persist()
       }
+    }
+  }
+  updateStatus(table, id, data) {
+    const { completedAt, updatedAt } = data
+
+    const indexRow = this.#database[table].findIndex(row => row.id === id)
+    const dataDB = this.#database[table][indexRow]
+
+    const statusDoBanco = dataDB.completedAt
+
+    if (statusDoBanco === null) {
+      dataDB.completedAt = completedAt
+      this.#database[table][indexRow] = { ...dataDB, updatedAt }
+    } else {
+      dataDB.completedAt = null
+      this.#database[table][indexRow] = { ...dataDB, updatedAt }
     }
   }
 }
