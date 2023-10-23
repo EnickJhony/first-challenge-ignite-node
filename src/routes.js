@@ -46,6 +46,10 @@ export const routes = [
     handler: (req, res) => {
       const { title, description } = req.body
 
+      if (!title || !description) {
+        return res.writeHead(400).end('title e description sao obrigatorios')
+      }
+
       const task = {
         id: randomUUID(),
         title,
