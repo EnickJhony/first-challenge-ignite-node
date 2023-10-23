@@ -6,14 +6,14 @@ const database = new Database()
 
 export const routes = [
   {
-    method: 'GET',
+        method: 'GET',
     path: buildRoutePath('/'),
     handler: (req, res) => {
       return res.end('Home da aplicação')
     }
   },
   {
-    method: 'GET',
+        method: 'GET',
     path: buildRoutePath('/tasks'),
     handler: (req, res) => {
       const tasks = database.select('tasks')
@@ -22,16 +22,20 @@ export const routes = [
     }
   },
   {
-    method: 'GET',
+        method: 'GET',
     path: buildRoutePath('/tasks/:id'),
     handler: (req, res) => {
       const { id } = req.params
       const task = database.selectUnique('tasks', id)
 
-      return res.end(JSON.stringify(task))
+      if (!task) {
+        return res.writeHead(404).end('task não encontrada')
+      } else {
+        return res.end(JSON.stringify(task))
+      }
     }
   },
-  { // POST TASK
+  {
     method: 'POST',
     path: buildRoutePath('/tasks'),
     handler: (req, res) => {
@@ -52,44 +56,56 @@ export const routes = [
     }
   },
   {
-    method: 'PUT',
+        method: 'PUT',
     path: buildRoutePath('/tasks/:id'),
     handler: (req, res) => {
       const { id } = req.params
       const { title, description } = req.body
-      
-      database.update('tasks', id, {
+
+      const updatedTask = database.update('tasks', id, {
         title,
         description,
         updatedAt: new Date()
       })
-      
-      return res.writeHead(204).end()
+
+      if (updatedTask === null) {
+        return res.writeHead(404).end('task não encontrada')
+      } else {
+        return res.writeHead(204).end()
+      }
     }
   },
   {
-    method: 'PATCH',
+        method: 'PATCH',
     path: buildRoutePath('/tasks/:id'),
     handler: (req, res) => {
       const { id } = req.params
-      
-      database.updateStatus('tasks', id, {
+
+      const completedTask = database.updateStatus('tasks', id, {
         completedAt: new Date(),
         updatedAt: new Date()
       })
 
-      return res.writeHead(204).end()
+      if (completedTask === null) {
+        return res.writeHead(404).end('task não encontrada')
+      } else {
+        return res.writeHead(204).end()
+      }
     }
   },
   {
-    method: 'DELETE',
+        method: 'DELETE',
     path: buildRoutePath('/tasks/:id'),
     handler: (req, res) => {
       const { id } = req.params
 
-      database.delete('tasks', id)
+      const deletedTask = database.delete('tasks', id)
 
-      return res.writeHead(204).end()
+      if (deletedTask === null) {
+        return res.writeHead(404).end('task não encontrada')
+      } else {
+        return res.writeHead(204).end()
+      }
     }
   }
 ]

@@ -29,6 +29,8 @@ export class Database {
 
     if (rowIndex > -1) {
       return this.#database[table][rowIndex]
+    } else {
+      return null
     }
   }
 
@@ -50,6 +52,8 @@ export class Database {
     if (rowIndex > -1) {
       this.#database[table].splice(rowIndex, 1)
       this.#persist()
+    } else {
+      return null
     }
   }
 
@@ -86,22 +90,28 @@ export class Database {
         }
         this.#persist()
       }
+    } else {
+      return null
     }
   }
   updateStatus(table, id, data) {
     const { completedAt, updatedAt } = data
 
-    const indexRow = this.#database[table].findIndex(row => row.id === id)
-    const dataDB = this.#database[table][indexRow]
+    const rowIndex = this.#database[table].findIndex(row => row.id === id)
+    const dataDB = this.#database[table][rowIndex]
 
-    const statusDoBanco = dataDB.completedAt
-
-    if (statusDoBanco === null) {
-      dataDB.completedAt = completedAt
-      this.#database[table][indexRow] = { ...dataDB, updatedAt }
+    if (rowIndex > -1) {
+      if (dataDB.completedAt === null) {
+        dataDB.completedAt = completedAt
+        this.#database[table][rowIndex] = { ...dataDB, updatedAt }
+        this.#persist()
+      } else {
+        dataDB.completedAt = null
+        this.#database[table][rowIndex] = { ...dataDB, updatedAt }
+        this.#persist()
+      }
     } else {
-      dataDB.completedAt = null
-      this.#database[table][indexRow] = { ...dataDB, updatedAt }
+      return null
     }
   }
 }
